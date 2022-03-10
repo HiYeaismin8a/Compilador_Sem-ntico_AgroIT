@@ -1,0 +1,17 @@
+inverna{
+	iniciar invernadero{ 
+		
+
+		rutina {
+			temperatura temp = 40%
+			vaho temp = 70
+			riego (durante 15 hr, empezar 4 hr)
+			luz luz2 = si 
+			lumen (si, complemento) 
+		} durante 12 hr
+
+
+
+	}
+}dero
+	

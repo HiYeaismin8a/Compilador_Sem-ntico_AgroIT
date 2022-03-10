@@ -1,0 +1,387 @@
+PARSER_BEGIN(comp)
+import java.io.*;
+class comp 
+{
+	public static void main( String[] args )throws ParseException, Exception
+	{
+		try
+		{		
+     		comp analizador = new comp( System.in ) ;
+			analizador.Programa();
+			System.out.println("\tAnalizador ha terminado.");			
+		}
+		catch(ParseException e)
+		{
+			System.out.println(e.getMessage());
+			System.out.println("\tAnalizador ha terminado.");
+		}
+	}
+}
+PARSER_END(comp)
+
+TOKEN : 
+{ 
+	  <ASIGNACION : "="> //1
+	| <PLUS : "+" >  //2
+	| <MINUS:"-"> //3
+	| <MULTIPLY:"*">  //4
+	| <DIVIDE:"/"> //5
+	| <INCR: "++" > //6
+	| <DECR: "--" > //7
+	
+}
+TOKEN:
+{
+	  <INICIAR: "iniciar"> //8
+	| <REPRODUCIR: "reproducir"> //9
+	| <INVERNA: "inverna"> //10
+	| <DERO: "dero"> //11
+	| <COMENZAR: "public static void Main()"> //12
+	| <TERMINAR: "terminar" >  //13
+	| <COMPROBAR: "comprobar" > //14
+	| <RUTINA:"rutina" > //15
+	| <HUMEDAD:"humedad" > //16
+	| <SI:"siiii" > //17
+	| <NO:"noooo" > //18
+	| <COMPLEMENTO:"complemento" > //19
+	| <DURANTE:"durante" > //20
+	| <SIEMPRE:"siempre" > //21
+	| <MIN:"min" > //22
+	| <HR:"hr" > //23
+	| <GRADOS:"grados" > //24
+	| <TEMPERATURA_ACTUAL:"temperatura_actual" > //25
+	| <MINIMO:"minimo" > //26
+	| <MAXIMO:"maximo" > //27
+	| <INCREMENTAR:"incrementar" > //28
+	| <DECREMENTAR:"decrementar" > //29
+	| <VOLUMEN:"volumen" > //30
+	| <MUSICA:"musica" > //31
+	| <DETENER:"detener" > //32
+	| <PAUSAR:"pausar" > //33
+	| <POSICION:"posicion" > //34
+	| <CONTINUAR:"continuar" > //35
+	| <FERTILIZANTE:"fertilizante" > //36
+	| <FERTLIQ:"fertliq" > //37
+	| <SOLIDO:"solido" > //38
+	| <CORDX:"cordx" > //39
+	| <CORDY:"cordy" > //40
+	| <POR:"por" > //41
+	| <REPETIR:"repetir" > //42
+	| <EMPEZAR:"empezar" > //43
+	| <RIEGO:"riego" > //44
+	| <LIQUIDO:"liquido" > //45
+	| <MAS:"mas" > //46
+	| <MENOS:"menos" > //47
+	| <SECTOR:"sector" > //48
+	| <TIPO:"tipo" > //49
+	| <INVERNADERO:"invernadero" > //50
+	| <LUMEN: "lumen">//51
+
+
+}
+TOKEN:
+{
+      <LPAREN: "(" > //52
+	| <RPAREN: ")" > //53
+	| <LBRACE: "{" > //54
+	| <RBRACE: "}" > //55
+	| <LBRACKET: "[" > //56
+	| <RBRACKET: "]" > //57
+	| <SEMICOLON: ";" > //58
+	| <COMMA: "," > //59
+	| <DOT: "." > //60
+	| <DOUBLECOMMA: "\""> //61
+}
+TOKEN:
+{
+	  <EQ: "==" > //62
+	| <LE: "<=" > //63
+	| <MN: "<" > //64
+	| <GE: ">=" > //65
+	| <GR: ">" > //66
+	| <NE: "!=" > //67
+	| <OR: "||" > //68
+	| <AND: "&&"> //69
+}
+
+TOKEN:
+{
+	  <TEMPERATURA:"temperatura" > //70
+	| <VAHO:"vaho" > //71
+	| <LUZ:"luz" > //72
+	| <LUMINOSIDAD:"luminosidad" > //73
+	| <NUMERO : (["0"-"9"])+>  //74
+	| <CADENA : "si"> //75
+	| <CADENADOS : "no"> //76
+	| <IDENTIFIER : ["a"-"z","A"-"Z"](["a"-"z","A"-"Z","0"-"9","_"])*>  //77
+	| <DECIMAL : (["0"-"9"])+["."](["0"-"9"])+ > //78
+	| <TEMPER: (["0"-"9"])+["%"] > //79
+
+}
+
+SKIP : 
+{ 
+	" "|"\n" | "\r" | "\r\n" | "\t"
+}
+
+void Programa() :
+{}
+{
+	<INVERNA><LBRACE>Inicio()<RBRACE><DERO><EOF>	
+}
+void Inicio():
+{}
+{
+	<INICIAR><INVERNADERO><LBRACE>Bloque()<RBRACE>
+}
+void Bloque():
+{}
+{
+	LOOKAHEAD(2)VariablesGlobales() | Principal()
+}
+
+void VariablesGlobales():
+{}
+{
+	(<TEMPERATURA>|<VAHO>|<LUZ>|<LUMINOSIDAD>) <IDENTIFIER>(<COMMA><IDENTIFIER>)* Bloque()
+}
+
+void Principal():
+{
+	TokenAsignaciones.SetTables();	
+}
+{
+	<RUTINA><LBRACE>Sentencias()<RBRACE>(<DURANTE>|<REPETIR>)<NUMERO><HR> RutinaRep()	
+}
+
+void RutinaRep():
+{}
+{
+	(<RUTINA><LBRACE>Sentencias()<RBRACE>(<DURANTE>|<REPETIR>)<NUMERO><HR>)*
+}
+
+void VariablesLocales():
+{
+	int td;
+	Token var;	
+}
+{
+(
+	(TiposDatos())
+	{
+		td = token.kind;
+	}
+	var = <IDENTIFIER> 
+	{		
+		TokenAsignaciones.InsertarSimbolo(var, td);
+	} 
+	[VariablesAsignacion(var)]
+	(
+		<COMMA>
+		var = <IDENTIFIER> 
+		{		
+			TokenAsignaciones.InsertarSimbolo(var, td);
+		} 
+		[VariablesAsignacion(var)]
+	)*	
+
+)
+	(VS())
+}
+
+void VariablesAsignacion(Token v1):
+{
+	Token v2;
+	Token v3;
+	String res;	
+	boolean imp = false;
+}
+{
+	<ASIGNACION>
+	(TiposAsignaciones())
+	  {  
+		v2 = token;
+		res = TokenAsignaciones.checkAsing(v1, v2);
+		
+		if(res != " ")
+		{
+			System.out.println(res);
+			imp = true;
+		}
+	  }
+	  (OpAritmetico()
+	  TiposAsignaciones()
+	  {  
+		v3 = token;
+		res = TokenAsignaciones.checkAsing(v1, v3);
+		
+		if(res != " " && !imp)
+		{
+			System.out.println(res);
+		}
+	  })*
+}
+
+void VS():
+{}
+{
+	LOOKAHEAD(3)VariablesLocales() | Sentencias()
+}
+
+void Sentencias():
+{}
+{
+	(	
+	VariablesLocales()
+
+  | AsigRiego() 	
+	| AsigLuminosidad()
+	| AsigFert()	
+	| LOOKAHEAD(2)SentenciaAsignacion(){TokenAsignaciones.segunda = 0;}
+	| Comparaciones()
+	| AsigMusica()
+	| AsigLuz()
+	)*
+}
+
+void AsigLuz():
+{}
+{
+	<IDENTIFIER> <ASIGNACION> (<CADENA>|<CADENADOS>) Sentencias()
+}
+//Sentencia AsigDatos
+void AsigDatos():
+{}
+{
+	<IDENTIFIER><ASIGNACION>(<NUMERO>|<CADENA>|<CADENADOS>) Sentencias()  
+}
+
+
+void Comparaciones():
+{}
+{
+	<COMPROBAR>Valor()Operadores()Valor()
+}
+void Valor():
+{}
+{
+	LOOKAHEAD(2) (<IDENTIFIER> | <NUMERO>) 
+}
+
+void Operadores():
+{}
+{
+	    <EQ> 
+	  | <LE> 
+	  | <GE> 
+	  | <NE> 
+	  | <GR> 
+	  | <MN> 
+}
+int OpAritmetico():
+{}
+{
+	  (<PLUS> {return 1;})
+	| (<MINUS> {return 1;})
+	| (<MULTIPLY> {return 1;})
+	| (<DIVIDE> {return 1;})
+	| ({return 0;})
+	
+	{return 0;}
+}
+
+void TiposDatos():
+{}
+{
+	 <TEMPERATURA>
+	| <VAHO>
+	| <LUZ>
+	| <LUMINOSIDAD>
+}
+
+
+//Sentencia AsigRiego
+void AsigRiego():
+{}
+{
+	<RIEGO> <LPAREN><DURANTE><NUMERO> (<MIN>|<HR>) <COMMA> <EMPEZAR> <NUMERO>(<MIN>|<HR>) <RPAREN> Sentencias() 
+}
+
+
+//Sentencia AsigLuminosidad
+void AsigLuminosidad():
+{}
+{
+	<LUMEN> <LPAREN>(<CADENA>|<CADENADOS>)<COMMA> (<CADENADOS>|<COMPLEMENTO>) <RPAREN> Sentencias()
+		
+}
+
+void AsigFert():
+{}
+{
+	<FERTILIZANTE> <LPAREN>(<LIQUIDO>|<SOLIDO>)<COMMA> <NUMERO> (<HR>|<MIN>)<RPAREN> Sentencias()
+}
+
+//Sentencia ASIGNACION
+void SentenciaAsignacion():
+{
+	Token v1;
+	Token v2;
+	Token v3;
+	int aux;
+	String res;
+	boolean imp = false;
+}
+{
+  v1 = <IDENTIFIER> 
+  (<ASIGNACION>
+  (TiposAsignaciones())
+  {  
+    v2 = token;
+	res = TokenAsignaciones.checkAsing(v1, v2);
+	
+	if(res != " ")
+	{
+		System.out.println(res);
+		imp = true;
+	}
+  }
+  (LOOKAHEAD(2)OpAritmetico()
+  TiposAsignaciones()
+  {  
+    v3 = token;
+	res = TokenAsignaciones.checkAsing(v1, v3);
+	
+	if(res != " " && !imp)
+	{
+		System.out.println(res);
+	}
+  })*  
+  |
+  (<INCR>|<DECR>)
+  {  
+	res = TokenAsignaciones.checkVariable(v1);
+	
+	if(res != " ")	
+		System.out.println(res);	
+  })
+  
+  //SentenciaAsignacion ya trae <SEMICOLON> en el metodo Sentencias()
+}
+void TiposAsignaciones():
+{}
+{
+	  <IDENTIFIER> 
+	| <NUMERO> 
+	| <CADENA>
+	| <CADENADOS>
+	| <TEMPER>
+
+}
+
+//Sentencia AsigMusica
+void AsigMusica():
+{}
+{
+	<REPRODUCIR> <LPAREN> <IDENTIFIER> <COMMA> <NUMERO> (<HR>|<MIN>) <RPAREN> Sentencias()
+}
